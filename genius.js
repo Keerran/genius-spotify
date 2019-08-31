@@ -104,7 +104,7 @@ function songChange() {
         },
         "crossDomain": true,
         "success": function ({ response: { hits } }) {
-            hits.sort(({result: a}, {result: b}) => b["stats"]["pageviews"] - a["stats"]["pageviews"])
+            hits.sort(({result: a}, {result: b}) => (b["stats"]["pageviews"] || 0) - (a["stats"]["pageviews"] || 0))
             console.log(hits)
             song_url = hits[0]["result"]["url"]
             $.ajax({
