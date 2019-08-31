@@ -50,7 +50,10 @@ function init() {
         lineHeight: "1.1em"
     })
     $(".main-view").append(lyrics_html)
-    $("#refresh").click(songChange)
+    $("#refresh").click(() => {
+        $("#lyrics div").html("hey bitch")
+        songChange()
+    })
     songChange()
 }
 
