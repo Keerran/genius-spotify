@@ -74,32 +74,14 @@ function main() {
 }
 
 function songChange() {
-    $.ajaxPrefilter( function (options) {
-        if (options.crossDomain && jQuery.support.cors) {
-            var http = (window.location.protocol === 'http:' ? 'http:' : 'https:');
-            options.url = http + '//cors-genius.herokuapp.com/' + options.url;
-            //options.url = "http://cors.corsproxy.io/url=" + options.url;
-        }
-    });
     console.log("songChange")
     if(!$("#lyrics").length) return;
 
     const ACCESS_TOKEN = 'uV_IMg_0vaBe2IOuPGMbqJuXtuBk7qrH2n7mk_jk5EILQqWtHY_j-byfga2HxibH'
     let song = getData(Spicetify.Player.data.track.metadata)
     let song_id;
-    $.get("https://api.genius.com/search", {
-            "q": song["title"] + " " + song["artist"],
-            "access_token": ACCESS_TOKEN
-        }
-    ).then(function ({ response: { hits } }) {
-        hits.sort(({result: a}, {result: b}) => (b["stats"]["pageviews"] || 0) - (a["stats"]["pageviews"] || 0))
-        console.log(hits)
-        song_url = (hits.find(({ result }) => result["full_title"].toLowerCase().includes(song["title"].toLowerCase())) || hits[0])["result"]["url"]
-        return $.get(song_url)
-    }).then(function (data) {
-        let lyrics = $("<div></div>").append($.parseHTML(data)).find(".lyrics p")[0]
-        console.log(lyrics)
-        lyrics = lyrics.innerHTML.replace(/\[/g, "<span class=\"verse\">[").replace(/\]/g, "]</span>")
+    $.get("https://genius-spotify.herokuapp.com", song).then(function (lyrics) {
+        lyrics = lyrics.replace(/\[/g, "<span class=\"verse\">[").replace(/\]/g, "]</span>")
 
         $("#lyrics div").html(lyrics)
         $("#lyrics a").replaceWith(function() { return this.innerHTML; });
