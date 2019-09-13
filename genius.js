@@ -80,7 +80,9 @@ function songChange() {
     const ACCESS_TOKEN = 'uV_IMg_0vaBe2IOuPGMbqJuXtuBk7qrH2n7mk_jk5EILQqWtHY_j-byfga2HxibH'
     let song = getData(Spicetify.Player.data.track.metadata)
     let song_id;
-    $.get("https://genius-spotify.herokuapp.com", song).then(function (lyrics) {
+    $.get("https://genius-spotify.herokuapp.com", song).then(function ({lyrics, results}) {
+        console.log(this.url)
+        console.log(results)
         lyrics = lyrics.replace(/\[/g, "<span class=\"verse\">[").replace(/\]/g, "]</span>")
 
         $("#lyrics div").html(lyrics)
