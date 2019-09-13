@@ -61,15 +61,7 @@ function init() {
 function getData(song) {
     let artist = song["artist_name"]
     let title = song["title"]
-    let i = 1
-    while (song["artist_name:"+i] !== undefined) {
-        let artist_i = song["artist_name:"+i]
-        //title = title.replace("(with " + artist_i + ")", "")
-        title = title.replace(/ ?\(.+\)/g, "").replace(/’/g, "'")
-        //artist += " " + artist_i
-        i++
-    }
-    console.log(title)
+    title = title.replace(/ ?\(.+\)/g, "").replace(/’/g, "'")
     return { artist, title }
 }
 
@@ -94,34 +86,22 @@ function songChange() {
 
     const ACCESS_TOKEN = 'uV_IMg_0vaBe2IOuPGMbqJuXtuBk7qrH2n7mk_jk5EILQqWtHY_j-byfga2HxibH'
     let song = getData(Spicetify.Player.data.track.metadata)
-    let base = "https://api.genius.com";
     let song_id;
-    $.get({
-        "url": base + "/search",
-        "data": {
+    $.get("https://api.genius.com/search", {
             "q": song["title"] + " " + song["artist"],
             "access_token": ACCESS_TOKEN
-        },
-        "crossDomain": true,
-        "success": function ({ response: { hits } }) {
-            hits.sort(({result: a}, {result: b}) => (b["stats"]["pageviews"] || 0) - (a["stats"]["pageviews"] || 0))
-            console.log(hits)
-            song_url = (hits.find(({ result }) => {
-                return result["full_title"].toLowerCase().includes(song["title"].toLowerCase())
-            }) || hits[0])["result"]["url"]
-            $.ajax({
-                type: "GET",
-                url: song_url,
-                data: {},
-                success: function (data) {
-                    let lyrics = $("<div></div>").append($.parseHTML(data)).find(".lyrics p")[0]
-                    console.log(lyrics)
-                    lyrics = lyrics.innerHTML.replace(/\[/g, "<span class=\"verse\">[").replace(/\]/g, "]</span>")
-
-                    $("#lyrics div").html(lyrics)
-                    $("#lyrics a").replaceWith(function() { return this.innerHTML; });
-                }
-            })
         }
+    ).then(function ({ response: { hits } }) {
+        hits.sort(({result: a}, {result: b}) => (b["stats"]["pageviews"] || 0) - (a["stats"]["pageviews"] || 0))
+        console.log(hits)
+        song_url = (hits.find(({ result }) => result["full_title"].toLowerCase().includes(song["title"].toLowerCase())) || hits[0])["result"]["url"]
+        return $.get(song_url)
+    }).then(function (data) {
+        let lyrics = $("<div></div>").append($.parseHTML(data)).find(".lyrics p")[0]
+        console.log(lyrics)
+        lyrics = lyrics.innerHTML.replace(/\[/g, "<span class=\"verse\">[").replace(/\]/g, "]</span>")
+
+        $("#lyrics div").html(lyrics)
+        $("#lyrics a").replaceWith(function() { return this.innerHTML; });
     })
 }
