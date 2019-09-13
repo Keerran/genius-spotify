@@ -16,6 +16,7 @@ let lyrics_html;
 })()
 
 function init() {
+    $(".progress-container.progress-bar-enabled").css("cursor", "pointer")
     $(`<style>
         .verse {
             line-height: 1.5em;
@@ -64,7 +65,7 @@ function getData(song) {
     while (song["artist_name:"+i] !== undefined) {
         let artist_i = song["artist_name:"+i]
         //title = title.replace("(with " + artist_i + ")", "")
-        title = title.replace(/\(.+\)/g, "")
+        title = title.replace(/ ?\(.+\)/g, "").replace(/’/g, "'")
         //artist += " " + artist_i
         i++
     }
@@ -81,9 +82,6 @@ function main() {
 }
 
 function songChange() {
-    console.log("songChange")
-    if(!$("#lyrics").length) return;
-
     $.ajaxPrefilter( function (options) {
         if (options.crossDomain && jQuery.support.cors) {
             var http = (window.location.protocol === 'http:' ? 'http:' : 'https:');
@@ -91,6 +89,8 @@ function songChange() {
             //options.url = "http://cors.corsproxy.io/url=" + options.url;
         }
     });
+    console.log("songChange")
+    if(!$("#lyrics").length) return;
 
     const ACCESS_TOKEN = 'uV_IMg_0vaBe2IOuPGMbqJuXtuBk7qrH2n7mk_jk5EILQqWtHY_j-byfga2HxibH'
     let song = getData(Spicetify.Player.data.track.metadata)
@@ -106,7 +106,9 @@ function songChange() {
         "success": function ({ response: { hits } }) {
             hits.sort(({result: a}, {result: b}) => (b["stats"]["pageviews"] || 0) - (a["stats"]["pageviews"] || 0))
             console.log(hits)
-            song_url = hits[0]["result"]["url"]
+            song_url = (hits.find(({ result }) => {
+                return result["full_title"].toLowerCase().includes(song["title"].toLowerCase())
+            }) || hits[0])["result"]["url"]
             $.ajax({
                 type: "GET",
                 url: song_url,
